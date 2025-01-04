@@ -1,4 +1,4 @@
-# To Do App: a simple to to application to manage your to do lists using React + Vite
+# To Do App: a simple To Do application to manage your to do lists using React + Vite
 
 ![alt text](Homepage.png)
 
