@@ -3,7 +3,7 @@
 ![alt text](Homepage.png)
 
 # Installation of Dependencies
-Simply run the command below in your project's root directory
+Simply run the command below in your project's root directory:
 
     npm install
 
