@@ -14,4 +14,7 @@ Currently, two official plugins are available:
 "npx vite" and "node server.js" must be run concurrently for this project.
 "node server.js" initiates the server for the database (back-end) while "npx vite" initiates server for the the front-end.
 To do so, I have added a script on package.json "start-dev" that runs "npx vite" and "node server.js" concurrently.
-Use the command in terminal: "npm run start-dev"
+Use the command in terminal:
+
+npm run start-dev
+
