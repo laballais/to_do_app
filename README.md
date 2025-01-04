@@ -16,5 +16,5 @@ Currently, two official plugins are available:
 To do so, I have added a script on package.json "start-dev" that runs "npx vite" and "node server.js" concurrently.
 Use the command in terminal:
 
-npm run start-dev
+    npm run start-dev
 
