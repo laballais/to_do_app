@@ -2,13 +2,10 @@
 
 ![alt text](Homepage.png)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Installation of Dependencies
+Simply run the command below in your project's root directory
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
+    npm install
 
 # Deployment
 "npx vite" and "node server.js" must be run concurrently for this project.
