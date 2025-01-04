@@ -16,3 +16,5 @@ Use the following command in terminal:
 
     npm run start-dev
 
+Web application will run in http://localhost:5173/.
+
