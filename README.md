@@ -1,4 +1,4 @@
-# React + Vite
+# To Do App: a simple to to application to manage your to do lists using React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
