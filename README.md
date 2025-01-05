@@ -14,7 +14,7 @@ To do so, I have added a script on package.json "start-dev" that runs "npx vite"
 
 Use the following command in in your project's root directory terminal:
 
-    npm run start-dev
+    npm run to-do-app
 
 Web application will run in http://localhost:5173/.
 

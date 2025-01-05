@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start-dev": "concurrently \"node server.js\" \"npx vite\"",
+    "to-to-app": "concurrently \"node server.js\" \"npx vite\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
