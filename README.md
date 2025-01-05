@@ -25,5 +25,5 @@ Web application will run in http://localhost:5173/.
 
 Windows:
 
-Double click the executable file to-to-app.exe
+Double click the executable file to-do-app.exe
 
