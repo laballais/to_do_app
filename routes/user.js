@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Define a route
 router.get('/', (req, res) => {
-    res.send('Get request to homepage');// this gets executed when user visit http://localhost:3000/todo
+    res.send('Get request to homepage');// this gets executed when user visit http://localhost:3000/user/tasks
 });
 
 router.post('/', (req, res) => {

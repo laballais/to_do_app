@@ -2,11 +2,13 @@ import express from 'express';
 import sqlite3 from 'sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
+import userRoute from './routes/user.js';
 
 const app = express();
 const port = 3000;
 
-app.use(cors()); // Enable CORS
+app.use('/user', userRoute);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -15,7 +17,7 @@ const db = new sqlite3.Database(':memory:');
 db.serialize(() => {
     db.run(`CREATE TABLE tasks (
         id TEXT PRIMARY KEY,
-        text TEXT,
+        text T
         completed BOOLEAN,
         isEditing BOOLEAN,
         createdDate TEXT,
