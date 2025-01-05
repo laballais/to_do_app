@@ -10,6 +10,8 @@ Simply run the command below in your project's root directory:
     npm install
 
 # Deployment
+Linux:
+
 "npx vite" and "node server.js" must be run concurrently for this project.
 "node server.js" initiates the server for the database (back-end) while "npx vite" initiates server for the the front-end.
 To do so, I have added a script on package.json "to-do-app" that runs "npx vite" and "node server.js" concurrently.
@@ -19,4 +21,9 @@ Use the following command in in your project's root directory terminal:
     npm run to-do-app
 
 Web application will run in http://localhost:5173/.
+
+
+Windows:
+
+Double click the executable file to-to-app.exe
 
