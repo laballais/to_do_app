@@ -17,7 +17,7 @@ const db = new sqlite3.Database(':memory:');
 db.serialize(() => {
     db.run(`CREATE TABLE tasks (
         id TEXT PRIMARY KEY,
-        text T
+        text TEXT,
         completed BOOLEAN,
         isEditing BOOLEAN,
         createdDate TEXT,
