@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { BsFillPersonFill } from "react-icons/bs";
+import { TbLogout } from "react-icons/tb";
 import appLogo from '/checkmark.svg';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -9,43 +11,49 @@ function App() {
     const [tasks, setTasks] = useState([]);
     const [task, setTask] = useState('');
     const [editTaskText, setEditTaskText] = useState('');
-
-    useEffect(() => {
-        fetchTasks();
-        console.log("Fetched data")
-    }, []);
-
-    const fetchTasks = async () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [token, setToken] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+    const fetchTasks = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:3000/tasks');
-            console.log('Fetched tasks:', response.data); // Debugging log
+            const response = await axios.get('http://localhost:3000/tasks', {
+                headers: { Authorization: token }
+            });
             setTasks(response.data);
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
-    };
+    }, [token]);
+    
+    useEffect(() => {
+        if (isLoggedIn) {
+            fetchTasks();
+        }
+    }, [isLoggedIn, fetchTasks]);
+    
 
     const handleAddTask = async () => {
-        console.log('Adding task'); // Debugging log
         if (task.trim() !== '') {
             try {
-                const { data } = await axios.post('http://localhost:3000/tasks', { text: task });
-                console.log('Added task:', data); // Debugging log
+                await axios.post('http://localhost:3000/tasks', { text: task }, {
+                    headers: { Authorization: token }
+                });
                 setTask('');
-                fetchTasks(); // Fetch updated list of tasks
+                fetchTasks();
             } catch (error) {
                 console.error('Error adding task:', error);
             }
-        } else {
-            console.log('Task is empty'); // Debugging log
         }
     };
 
     const handleDeleteTask = async (id) => {
         try {
-            await axios.delete(`http://localhost:3000/tasks/${id}`);
-            console.log('Deleted task ID:', id); // Debugging log
-            fetchTasks(); // Fetch updated list of tasks
+            await axios.delete(`http://localhost:3000/tasks/${id}`, {
+                headers: { Authorization: token }
+            });
+            fetchTasks();
         } catch (error) {
             console.error('Error deleting task:', error);
         }
@@ -59,11 +67,10 @@ function App() {
 
     const handleSaveTask = async (id) => {
         try {
-            await axios.put(`http://localhost:3000/tasks/${id}`, { text: editTaskText, completed: false, isEditing: false });
-            console.log('Saved task ID:', id); // Debugging log
-            const newTasks = tasks.map((task) => (task.id === id ? { ...task, text: editTaskText, isEditing: false } : task));
-            setTasks(newTasks);
-            fetchTasks(); // Fetch updated list of tasks
+            await axios.put(`http://localhost:3000/tasks/${id}`, { text: editTaskText, completed: false, isEditing: false }, {
+                headers: { Authorization: token }
+            });
+            fetchTasks();
         } catch (error) {
             console.error('Error saving task:', error);
         }
@@ -72,9 +79,10 @@ function App() {
     const handleToggleComplete = async (id) => {
         const task = tasks.find((task) => task.id === id);
         try {
-            await axios.put(`http://localhost:3000/tasks/${id}`, { ...task, completed: !task.completed });
-            console.log('Toggled complete task ID:', id); // Debugging log
-            fetchTasks(); // Fetch updated list of tasks
+            await axios.put(`http://localhost:3000/tasks/${id}`, { ...task, completed: !task.completed }, {
+                headers: { Authorization: token }
+            });
+            fetchTasks();
         } catch (error) {
             console.error('Error toggling task completion:', error);
         }
@@ -92,14 +100,89 @@ function App() {
         }
     };
 
-    return (
-        <>
+    const handleSignup = async () => {
+        try {
+            const response = await axios.post('http://localhost:3000/user/signup', { username, password });
+            setToken(response.data.token);
+            setIsLoggedIn(true);
+        } catch (error) {
+            console.error('Error signing up:', error);
+            alert('Signup failed. Username already exists.');
+        }
+    };   
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post('http://localhost:3000/user/login', { username, password });
+            setToken(response.data.token);
+            setIsLoggedIn(true);
+        } catch (error) {
+            console.error('Error logging in:', error);
+            alert('Login failed. Please check your username and password.');
+        }
+    };
+   
+    const handleLogout = () => {
+        setToken('');
+        setIsLoggedIn(false);
+        setTasks([]);
+    };
+
+    if (!isLoggedIn) {
+        return (
             <div className="container mt-5">
                 <div className="header d-flex align-items-center justify-content-center">
                     <a href="#">
                         <img src={appLogo} className="logo" alt="To Do App logo" />
                     </a>
                     <h1 className="ml-2">To Do App</h1>
+                </div>
+                <div className="form-inline mt-3">
+                    <Form.Group className="mb-3 d-flex align-items-center" controlId="formUsername">
+                        <Form.Control
+                            type="text"
+                            placeholder="Username"
+                            className="mr-2"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3 d-flex align-items-center" controlId="formPassword">
+                        <Form.Control
+                            type="password"
+                            placeholder="Password"
+                            className="mr-2"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Button variant="primary" onClick={handleLogin}>Login</Button>
+                    <Button variant="secondary" onClick={handleSignup}>Signup</Button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div className="container mt-5">
+                <div className="logout-container d-flex justify-content-end align-items-center mb-2">
+                    <Button variant="outlined" className="mr-2">
+                        <BsFillPersonFill className="mr-1" />
+                        {username}
+                    </Button>
+                    <Button variant="outlined" className="mr-2" onClick={handleLogout}>
+                        <TbLogout className="mr-1" />
+                    </Button>
+                    </div>
+
+                <div className="header-container d-flex align-items-center justify-content-center">
+                    <div className="header d-flex align-items-center">
+                        <a href="#">
+                            <img src={appLogo} className="logo" alt="To Do App logo" />
+                        </a>
+                        <h1 className="ml-2">To Do App</h1>
+                    </div>
                 </div>
                 <div className="form-inline mt-3">
                     <Form.Group className="mb-3 d-flex align-items-center" controlId="formToDo" style={{ width: '900px' }}>
@@ -111,12 +194,7 @@ function App() {
                             onChange={(e) => setTask(e.target.value)}
                             onKeyPress={handleKeyPress}
                         />
-                        <Button variant="primary" type="button" onClick={() => {
-                            console.log('Button clicked'); // Debugging log
-                            handleAddTask();
-                        }}>
-                            +
-                        </Button>
+                        <Button variant="primary" type="button" onClick={handleAddTask}>+</Button>
                     </Form.Group>
                 </div>
                 {tasks.length > 0 && (
@@ -188,6 +266,9 @@ function App() {
                 )}
             </div>
             <style>{`
+                .header-container {
+                    position: relative;
+                }
                 .task-item {
                     position: relative;
                 }
@@ -207,7 +288,7 @@ function App() {
                 }
             `}</style>
         </>
-    );
+    );   
 }
 
 export default App;

@@ -2,31 +2,95 @@ import express from 'express';
 import sqlite3 from 'sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
-import userRoute from './routes/user.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const port = 3000;
+const secretKey = 'your_secret_key';
 
-app.use('/user', userRoute);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database('./models/database.db');
 
+// Database schema creation
 db.serialize(() => {
-    db.run(`CREATE TABLE tasks (
+    // Create users table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
+        username TEXT UNIQUE,
+        password TEXT
+    )`);
+
+    // Create tasks table
+    db.run(`CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        userId TEXT,
         text TEXT,
         completed BOOLEAN,
         isEditing BOOLEAN,
         createdDate TEXT,
-        updatedDate TEXT
+        updatedDate TEXT,
+        FOREIGN KEY(userId) REFERENCES users(id)
     )`);
 });
 
-app.get('/tasks', (req, res) => {
-    db.all('SELECT * FROM tasks', (err, rows) => {
+// Middleware to authenticate user
+const authenticate = (req, res, next) => {
+    const token = req.headers['authorization'];
+    if (!token) return res.status(401).send('Access denied. No token provided.');
+
+    jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) return res.status(401).send('Invalid token.');
+        req.user = decoded;
+        next();
+    });
+};
+
+// Signup route
+app.post('/user/signup', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).send('Username and password are required.');
+    }
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const userId = uuidv4();
+    db.run(
+        `INSERT INTO users (id, username, password) VALUES (?, ?, ?)`,
+        [userId, username, hashedPassword],
+        (err) => {
+            if (err) {
+                return res.status(500).send(err.message);
+            }
+            const token = jwt.sign({ id: userId, username }, secretKey);
+            res.status(201).json({ token });
+        }
+    );
+});
+
+// Login route
+app.post('/user/login', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).send('Username and password are required.');
+    }
+    db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, user) => {
+        if (err) return res.status(500).send(err.message);
+        if (!user) return res.status(400).send('User not found.');
+
+        const validPassword = bcrypt.compareSync(password, user.password);
+        if (!validPassword) return res.status(400).send('Invalid password.');
+
+        const token = jwt.sign({ id: user.id, username: user.username }, secretKey);
+        res.json({ token });
+    });
+});
+
+// Get all tasks for authenticated user
+app.get('/tasks', authenticate, (req, res) => {
+    db.all(`SELECT * FROM tasks WHERE userId = ?`, [req.user.id], (err, rows) => {
         if (err) {
             res.status(500).send(err.message);
             return;
@@ -35,10 +99,15 @@ app.get('/tasks', (req, res) => {
     });
 });
 
-app.post('/tasks', (req, res) => {
+// Add task for authenticated user
+app.post('/tasks', authenticate, (req, res) => {
     const { text } = req.body;
+    if (!text) {
+        return res.status(400).send('Task text is required.');
+    }
     const newTask = {
         id: uuidv4(),
+        userId: req.user.id,
         text,
         completed: false,
         isEditing: false,
@@ -46,8 +115,8 @@ app.post('/tasks', (req, res) => {
         updatedDate: new Date().toISOString()
     };
     db.run(
-        `INSERT INTO tasks (id, text, completed, isEditing, createdDate, updatedDate) VALUES (?, ?, ?, ?, ?, ?)`,
-        [newTask.id, newTask.text, newTask.completed, newTask.isEditing, newTask.createdDate, newTask.updatedDate],
+        `INSERT INTO tasks (id, userId, text, completed, isEditing, createdDate, updatedDate) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [newTask.id, newTask.userId, newTask.text, newTask.completed, newTask.isEditing, newTask.createdDate, newTask.updatedDate],
         (err) => {
             if (err) {
                 res.status(500).send(err.message);
@@ -58,13 +127,17 @@ app.post('/tasks', (req, res) => {
     );
 });
 
-app.put('/tasks/:id', (req, res) => {
+// Update task for authenticated user
+app.put('/tasks/:id', authenticate, (req, res) => {
     const { id } = req.params;
     const { text, completed, isEditing } = req.body;
+    if (!text) {
+        return res.status(400).send('Task text is required.');
+    }
     const updatedDate = new Date().toISOString();
     db.run(
-        `UPDATE tasks SET text = ?, completed = ?, isEditing = ?, updatedDate = ? WHERE id = ?`,
-        [text, completed, isEditing, updatedDate, id],
+        `UPDATE tasks SET text = ?, completed = ?, isEditing = ?, updatedDate = ? WHERE id = ? AND userId = ?`,
+        [text, completed, isEditing, updatedDate, id, req.user.id],
         function (err) {
             if (err) {
                 res.status(500).send(err.message);
@@ -79,9 +152,10 @@ app.put('/tasks/:id', (req, res) => {
     );
 });
 
-app.delete('/tasks/:id', (req, res) => {
+// Delete task for authenticated user
+app.delete('/tasks/:id', authenticate, (req, res) => {
     const { id } = req.params;
-    db.run(`DELETE FROM tasks WHERE id = ?`, id, function (err) {
+    db.run(`DELETE FROM tasks WHERE id = ? AND userId = ?`, [id, req.user.id], function (err) {
         if (err) {
             res.status(500).send(err.message);
             return;
