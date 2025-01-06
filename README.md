@@ -5,7 +5,7 @@
 ![alt text](./public/Userpage.png)
 
 # Installation of Dependencies
-Make sure node.js is installed in your system. Then simply run the command below in your project's root directory:
+Make sure node.js and npm is installed in your system. Then simply run the command below in your project's root directory:
 
     npm install
 
