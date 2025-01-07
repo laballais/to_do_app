@@ -50,7 +50,7 @@ const authenticate = (req, res, next) => {
 };
 
 // Signup route
-app.post('/user/signup', (req, res) => {
+app.post('/signup', (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
         return res.status(400).send('Username and password are required.');
@@ -71,7 +71,7 @@ app.post('/user/signup', (req, res) => {
 });
 
 // Login route
-app.post('/user/login', (req, res) => {
+app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
         return res.status(400).send('Username and password are required.');

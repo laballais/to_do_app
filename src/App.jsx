@@ -102,7 +102,7 @@ function App() {
 
     const handleSignup = async () => {
         try {
-            const response = await axios.post('http://localhost:3000/user/signup', { username, password });
+            const response = await axios.post('http://localhost:3000/signup', { username, password });
             setToken(response.data.token);
             setIsLoggedIn(true);
         } catch (error) {
@@ -113,7 +113,7 @@ function App() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('http://localhost:3000/user/login', { username, password });
+            const response = await axios.post('http://localhost:3000/login', { username, password });
             setToken(response.data.token);
             setIsLoggedIn(true);
         } catch (error) {
