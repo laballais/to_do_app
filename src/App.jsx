@@ -15,31 +15,27 @@ function App() {
     const [password, setPassword] = useState('');
     const [token, setToken] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+    const [profilePicture, setProfilePicture] = useState(null);
+
     const fetchTasks = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:3000/tasks', {
-                headers: { Authorization: token }
-            });
+            const response = await axios.get('http://localhost:3000/tasks', { headers: { Authorization: token } });
             setTasks(response.data);
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
     }, [token]);
-    
+
     useEffect(() => {
         if (isLoggedIn) {
             fetchTasks();
         }
     }, [isLoggedIn, fetchTasks]);
-    
 
     const handleAddTask = async () => {
         if (task.trim() !== '') {
             try {
-                await axios.post('http://localhost:3000/tasks', { text: task }, {
-                    headers: { Authorization: token }
-                });
+                await axios.post('http://localhost:3000/tasks', { text: task }, { headers: { Authorization: token } });
                 setTask('');
                 fetchTasks();
             } catch (error) {
@@ -50,9 +46,7 @@ function App() {
 
     const handleDeleteTask = async (id) => {
         try {
-            await axios.delete(`http://localhost:3000/tasks/${id}`, {
-                headers: { Authorization: token }
-            });
+            await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: token } });
             fetchTasks();
         } catch (error) {
             console.error('Error deleting task:', error);
@@ -67,9 +61,7 @@ function App() {
 
     const handleSaveTask = async (id) => {
         try {
-            await axios.put(`http://localhost:3000/tasks/${id}`, { text: editTaskText, completed: false, isEditing: false }, {
-                headers: { Authorization: token }
-            });
+            await axios.put(`http://localhost:3000/tasks/${id}`, { text: editTaskText, completed: false, isEditing: false }, { headers: { Authorization: token } });
             fetchTasks();
         } catch (error) {
             console.error('Error saving task:', error);
@@ -79,9 +71,7 @@ function App() {
     const handleToggleComplete = async (id) => {
         const task = tasks.find((task) => task.id === id);
         try {
-            await axios.put(`http://localhost:3000/tasks/${id}`, { ...task, completed: !task.completed }, {
-                headers: { Authorization: token }
-            });
+            await axios.put(`http://localhost:3000/tasks/${id}`, { ...task, completed: !task.completed }, { headers: { Authorization: token } });
             fetchTasks();
         } catch (error) {
             console.error('Error toggling task completion:', error);
@@ -109,7 +99,7 @@ function App() {
             console.error('Error signing up:', error);
             alert('Signup failed. Username already exists.');
         }
-    };   
+    };
 
     const handleLogin = async () => {
         try {
@@ -121,11 +111,29 @@ function App() {
             alert('Login failed. Please check your username and password.');
         }
     };
-   
+
     const handleLogout = () => {
         setToken('');
         setIsLoggedIn(false);
         setTasks([]);
+    };
+
+    const handleProfilePictureUpload = async (event) => {
+        const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
+        try {
+            const response = await axios.post('http://localhost:3000/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: token,
+                },
+            });
+            setProfilePicture(response.data.url);
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+        }
     };
 
     if (!isLoggedIn) {
@@ -139,22 +147,10 @@ function App() {
                 </div>
                 <div className="form-inline mt-3">
                     <Form.Group className="mb-3 d-flex align-items-center" controlId="formUsername">
-                        <Form.Control
-                            type="text"
-                            placeholder="Username"
-                            className="mr-2"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
+                        <Form.Control type="text" placeholder="Username" className="mr-2" value={username} onChange={(e) => setUsername(e.target.value)} />
                     </Form.Group>
                     <Form.Group className="mb-3 d-flex align-items-center" controlId="formPassword">
-                        <Form.Control
-                            type="password"
-                            placeholder="Password"
-                            className="mr-2"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <Form.Control type="password" placeholder="Password" className="mr-2" value={password} onChange={(e) => setPassword(e.target.value)} />
                     </Form.Group>
                     <Button variant="primary" onClick={handleLogin}>Login</Button>
                     <Button variant="secondary" onClick={handleSignup}>Signup</Button>
@@ -167,15 +163,21 @@ function App() {
         <>
             <div className="container mt-5">
                 <div className="logout-container d-flex justify-content-end align-items-center mb-2">
-                    <Button variant="outlined" className="mr-2">
-                        <BsFillPersonFill className="mr-1" />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="profilePictureInput"
+                        onChange={handleProfilePictureUpload}
+                    />
+                    <Button variant="outlined" className="mr-2" onClick={() => document.getElementById('profilePictureInput').click()}>
+                        {profilePicture ? <img src={profilePicture} alt="Profile" className="profile-picture" /> : <BsFillPersonFill className="mr-1" />}
                         {username}
                     </Button>
                     <Button variant="outlined" className="mr-2" onClick={handleLogout}>
                         <TbLogout className="mr-1" />
                     </Button>
-                    </div>
-
+                </div>
                 <div className="header-container d-flex align-items-center justify-content-center">
                     <div className="header d-flex align-items-center">
                         <a href="#">
@@ -186,14 +188,7 @@ function App() {
                 </div>
                 <div className="form-inline mt-3">
                     <Form.Group className="mb-3 d-flex align-items-center" controlId="formToDo" style={{ width: '900px' }}>
-                        <Form.Control
-                            type="text"
-                            placeholder="Write your to do here"
-                            className="mr-2"
-                            value={task}
-                            onChange={(e) => setTask(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                        />
+                        <Form.Control type="text" placeholder="Write your to do here" className="mr-2" value={task} onChange={(e) => setTask(e.target.value)} onKeyPress={handleKeyPress} />
                         <Button variant="primary" type="button" onClick={handleAddTask}>+</Button>
                     </Form.Group>
                 </div>
@@ -203,30 +198,12 @@ function App() {
                         <h4 className="mt-4" style={{ textAlign: 'left' }}>To Do List:</h4>
                         <ul className="list-group mt-2">
                             {tasks.map((task) => (
-                                <li
-                                    key={task.id}
-                                    className={`list-group-item d-flex align-items-center task-item ${task.completed ? 'completed-task' : ''}`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className="mr-2"
-                                        checked={task.completed}
-                                        onChange={() => handleToggleComplete(task.id)}
-                                    />
+                                <li key={task.id} className={`list-group-item d-flex align-items-center task-item ${task.completed ? 'completed-task' : ''}`}>
+                                    <input type="checkbox" className="mr-2" checked={task.completed} onChange={() => handleToggleComplete(task.id)} />
                                     {task.isEditing ? (
-                                        <Form.Control
-                                            type="text"
-                                            className="flex-grow-1 ml-2"
-                                            value={editTaskText}
-                                            onChange={(e) => setEditTaskText(e.target.value)}
-                                            onKeyPress={(e) => handleSaveKeyPress(e, task.id)}
-                                            autoFocus
-                                        />
+                                        <Form.Control type="text" className="flex-grow-1 ml-2" value={editTaskText} onChange={(e) => setEditTaskText(e.target.value)} onKeyPress={(e) => handleSaveKeyPress(e, task.id)} autoFocus />
                                     ) : (
-                                        <span
-                                            className={`flex-grow-1 ml-2 ${task.completed ? 'completed' : ''}`}
-                                            style={{ textAlign: 'left' }}
-                                        >
+                                        <span className={`flex-grow-1 ml-2 ${task.completed ? 'completed' : ''}`} style={{ textAlign: 'left' }}>
                                             {task.text}
                                         </span>
                                     )}
@@ -285,6 +262,11 @@ function App() {
                 .muted-red {
                     background-color: #e57373;
                     border-color: #e57373;
+                }
+                .profile-picture {
+                    width: 2em; /* Adjust the size to match the icon */
+                    height: 2em; /* Adjust the size to match the icon */
+                    border-radius: 50%; /* Optional: to make the image circular */
                 }
             `}</style>
         </>

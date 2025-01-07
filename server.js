@@ -4,14 +4,78 @@ import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import path from 'path';
+import helmet from 'helmet';
 
 const app = express();
 const port = 3000;
 const secretKey = 'your_secret_key';
 
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173' })); // Allow requests from your frontend origin
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet({ 
+    crossOriginResourcePolicy: false, 
+    crossOriginEmbedderPolicy: false, 
+}));
+
+// Middleware to set CORS headers for all responses
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
+
+// Set storage engine
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+// Initialize upload
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 }, // Limit file size to 1MB
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  }
+}).single('profilePicture');
+
+// Check file type
+function checkFileType(file, cb) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb('Error: Images Only!');
+  }
+}
+
+// Route to handle file upload
+app.post('/upload', (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      if (req.file == undefined) {
+        res.status(400).send('No file selected!');
+      } else {
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        res.json({ url: fileUrl });
+      }
+    }
+  });
+});
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static('uploads'));
 
 const db = new sqlite3.Database('./models/database.db');
 
