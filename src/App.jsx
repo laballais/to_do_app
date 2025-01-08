@@ -170,13 +170,13 @@ function App() {
                         id="profilePictureInput"
                         onChange={handleProfilePictureUpload}
                     />
-                    <Button variant="outlined" className="mr-2" onClick={() => document.getElementById('profilePictureInput').click()}>
-                        {profilePicture ? <img src={profilePicture} alt="Profile" className="profile-picture" /> : <BsFillPersonFill className="mr-1" />}
-                        {username}
-                    </Button>
-                    <Button variant="outlined" className="mr-2" onClick={handleLogout}>
-                        <TbLogout className="mr-1" />
-                    </Button>
+                        <Button variant="outlined" className="mr-0" onClick={() => document.getElementById('profilePictureInput').click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {profilePicture ? <img src={profilePicture} alt="Profile" className="profile-picture" style={{ marginRight: '5px' }} /> : <BsFillPersonFill className="mr-1" />}
+                            {username}
+                        </Button>
+                        <Button variant="outlined" className="ml-0" onClick={handleLogout}>
+                            <TbLogout className="mr-1" />
+                        </Button>
                 </div>
                 <div className="header-container d-flex align-items-center justify-content-center">
                     <div className="header d-flex align-items-center">
@@ -264,8 +264,8 @@ function App() {
                     border-color: #e57373;
                 }
                 .profile-picture {
-                    width: 2em; /* Adjust the size to match the icon */
-                    height: 2em; /* Adjust the size to match the icon */
+                    width: 1em; /* Adjust the size to match the icon */
+                    height: 1em; /* Adjust the size to match the icon */
                     border-radius: 50%; /* Optional: to make the image circular */
                 }
             `}</style>
