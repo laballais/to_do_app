@@ -120,9 +120,13 @@ function App() {
 
     const handleProfilePictureUpload = async (event) => {
         const file = event.target.files[0];
+        if (file && file.size > 1048576) { // 1MB = 1048576 bytes
+            alert('File size should be less than 1MB');
+            return;
+        }
         const formData = new FormData();
         formData.append('profilePicture', file);
-
+    
         try {
             const response = await axios.post('http://localhost:3000/upload', formData, {
                 headers: {
@@ -133,9 +137,10 @@ function App() {
             setProfilePicture(response.data.url);
         } catch (error) {
             console.error('Error uploading profile picture:', error);
+            alert('Error uploading profile picture. Try again later.');
         }
-    };
-
+    };  
+   
     if (!isLoggedIn) {
         return (
             <div className="container mt-5">
