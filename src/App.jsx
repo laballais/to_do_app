@@ -170,10 +170,12 @@ function App() {
                         id="profilePictureInput"
                         onChange={handleProfilePictureUpload}
                     />
-                        <Button variant="outlined" className="mr-0" onClick={() => document.getElementById('profilePictureInput').click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {profilePicture ? <img src={profilePicture} alt="Profile" className="profile-picture" style={{ marginRight: '5px' }} /> : <BsFillPersonFill className="mr-1" />}
+                    <Button variant="outlined" className="mr-0" onClick={() => document.getElementById('profilePictureInput').click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {profilePicture ? <img src={profilePicture} alt="Profile" className="profile-picture" style={{ marginRight: '5px' }} /> : <BsFillPersonFill className="mr-1" />}
+                        <div style={{ textAlign: 'center', width: '100%' }}>
                             {username}
-                        </Button>
+                        </div>
+                    </Button>
                         <Button variant="outlined" className="ml-0" onClick={handleLogout}>
                             <TbLogout className="mr-1" />
                         </Button>
